@@ -14,7 +14,13 @@ public class MyDataStructureParser2 {
 	private static final MyDataStructureParser2 parser = new MyDataStructureParser2();
 	
 	public static void main(String[] args) {
-		parser.testGetObjectIndexes();
+		//parser.testGetObjectIndexes();
+		parser.getObjectListTest();
+	}
+	
+	private void getObjectListTest() {
+		List<Map<String,Object>> objectList = parser.getObjectList(TEST_DATA, 0, TEST_DATA.length() - 1);
+		System.out.println(objectList);
 	}
 	
 	private List<Map<String,Object>> getObjectList(String rawData, int beginIndex, int endIndex) {
@@ -34,18 +40,19 @@ public class MyDataStructureParser2 {
 		boolean keyInProgress = true;
 		int i = 0;
 		while(i < charArray.length) {			
-			if(charArray[i] == ':') {
-				propertyKey = "";
+			if(charArray[i] == ':') {				
 				keyInProgress = false;
-			}else if(charArray[i] == '|') {
-				propertyValue = "";
+			}else if(charArray[i] == '|') {				
 				keyInProgress = true;
 				object.put(propertyKey, propertyValue);
+				propertyKey = "";
+				propertyValue = "";
 			}else if(charArray[i] == '[') {
 				int listContentBeginIndex = beginIndex + i + 1;
 				int endListIndex = getEndListIndex(rawData, listContentBeginIndex - 1);
-				List<Map<String,Object>> objectList = getObjectList(rawData, listContentBeginIndex, endListIndex - 1);
+				List<Map<String,Object>> objectList = getObjectList(rawData, listContentBeginIndex, endListIndex);
 				object.put(propertyKey, objectList);
+				propertyKey = "";
 				i = endListIndex;
 			}else if (keyInProgress) {
 				propertyKey+=charArray[i];
@@ -53,6 +60,9 @@ public class MyDataStructureParser2 {
 				propertyValue+=charArray[i];
 			}
 			i++;
+		}
+		if(propertyKey.length() > 0 && propertyValue.length() > 0) {
+			object.put(propertyKey, propertyValue);
 		}
 		return object;
 	}
@@ -66,7 +76,9 @@ public class MyDataStructureParser2 {
 				stack.push(i);				
 			}else if(charArray[i] == ']') {				
 				stack.pop();
-			}else if(stack.size() == 0) {
+			}
+			//
+			if(stack.size() == 0) {
 				break;
 			}
 			i++;
